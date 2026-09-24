@@ -10,7 +10,7 @@
             <div>
                 <h1 class="text-2xl font-bold">✅ Ujian Telah Dikumpulkan</h1>
                 <p class="text-green-100 text-sm mt-1">{{ auth()->user()->name }} — {{ auth()->user()->nim }}</p>
-                <p class="text-green-100 text-xs mt-0.5">Selesai: {{ $session->finished_at->format('d M Y, H:i') }}</p>
+                <p class="text-green-200 text-xs mt-0.5">{{ $exam->name }} | Selesai: {{ $session->finished_at->format('d M Y, H:i') }}</p>
             </div>
             <div class="text-center">
                 <div class="text-4xl font-black">{{ $session->estimated_grade }}<span class="text-xl">/100</span></div>
@@ -59,20 +59,35 @@
                     {{ $answer->question->number }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs text-gray-500 mb-1 truncate">{{ Str::limit($answer->question->question_text, 100) }}</p>
+                    <div class="flex items-center gap-2 mb-1">
+                        <p class="text-xs text-gray-500 truncate">{{ Str::limit($answer->question->question_text, 100) }}</p>
+                        <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full flex-shrink-0">{{ $answer->question->type_label }}</span>
+                    </div>
                     <div class="bg-gray-50 border rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-line max-h-28 overflow-y-auto">
-                        {{ $answer->answer_text ?: '(tidak dijawab)' }}
+                        @if($answer->question->type === 'pilihan_ganda')
+                            <span class="font-bold text-blue-700">{{ $answer->selected_option ?? '-' }}.</span>
+                            {{ $answer->answer_text ?: '(tidak dijawab)' }}
+                        @else
+                            {{ $answer->answer_text ?: '(tidak dijawab)' }}
+                        @endif
                     </div>
                 </div>
                 <div class="flex-shrink-0 text-center">
                     <div class="text-lg font-bold {{ $answer->estimated_score >= 4 ? 'text-green-600' : ($answer->estimated_score >= 2 ? 'text-yellow-600' : 'text-red-500') }}">
                         {{ $answer->estimated_score }}
                     </div>
-                    <div class="text-xs text-gray-400">/5</div>
+                    <div class="text-xs text-gray-400">/{{ $answer->question->points }}</div>
                 </div>
             </div>
         </div>
         @endforeach
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{{ route('ujian.enter-code') }}"
+           class="inline-block text-sm bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl transition font-semibold shadow">
+            ← Kembali ke Daftar Ujian
+        </a>
     </div>
 
     <div class="mt-4 text-center text-xs text-gray-400">

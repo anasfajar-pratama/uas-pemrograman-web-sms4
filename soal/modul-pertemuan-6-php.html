@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Modul interaktif Pertemuan 6 Basic Programming dengan PHP: skema pemrosesan sekuensial, for, while, MARK, latihan program, dan kuis.">
+  <title>Pertemuan 6 · Skema Pemrosesan Sekuensial dengan PHP</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #607089;
+      --paper: #fbfcff;
+      --surface: #ffffff;
+      --line: #dfe6f2;
+      --primary: #4057d6;
+      --primary-dark: #293aa8;
+      --teal: #078c83;
+      --gold: #e59b20;
+      --danger: #c84959;
+      --shadow: 0 14px 36px rgba(35, 48, 90, .10);
+      --code: #151a2d;
+      --code-ink: #e8eeff;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(64,87,214,.12), transparent 34rem),
+        radial-gradient(circle at 100% 12%, rgba(7,140,131,.10), transparent 30rem),
+        var(--paper);
+      font: 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--primary-dark); }
+    button, input { font: inherit; }
+    code, pre, .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .wrap { width: min(1120px, calc(100% - 36px)); margin: auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(14px);
+      background: rgba(251,252,255,.88);
+      border-bottom: 1px solid rgba(223,230,242,.85);
+    }
+    .topbar-inner { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.02em; }
+    .brand-mark {
+      width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px;
+      background: linear-gradient(135deg, var(--primary), #7e8cff); color: white; box-shadow: 0 7px 16px rgba(64,87,214,.25);
+    }
+    nav { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+    nav a { text-decoration: none; color: var(--muted); font-size: .91rem; font-weight: 700; }
+    nav a:hover { color: var(--primary); }
+    .hero { padding: 72px 0 50px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .76rem; font-weight: 800; color: var(--primary); }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -.035em; margin: 0 0 14px; }
+    h1 { max-width: 780px; font-size: clamp(2.35rem, 6vw, 4.75rem); }
+    h2 { font-size: clamp(1.65rem, 3vw, 2.45rem); margin-top: 8px; }
+    h3 { font-size: 1.25rem; }
+    p { margin: 0 0 14px; }
+    .hero p.lead { max-width: 760px; color: var(--muted); font-size: 1.17rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 28px; }
+    .chip { padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--muted); font-size: .83rem; font-weight: 750; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; }
+    .btn {
+      border: 0; border-radius: 11px; padding: 10px 15px; cursor: pointer; font-weight: 800;
+      background: var(--primary); color: white; box-shadow: 0 7px 16px rgba(64,87,214,.18);
+    }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn.secondary { background: white; color: var(--primary-dark); border: 1px solid var(--line); box-shadow: none; }
+    .btn.small { padding: 7px 11px; font-size: .87rem; }
+    section { padding: 42px 0; }
+    .section-heading { max-width: 760px; margin-bottom: 24px; }
+    .section-heading p { color: var(--muted); }
+    .grid { display: grid; gap: 18px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .card {
+      background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 18px;
+      padding: 22px; box-shadow: var(--shadow);
+    }
+    .card.flat { box-shadow: none; }
+    .card p:last-child { margin-bottom: 0; }
+    .number {
+      display: inline-grid; place-items: center; width: 30px; height: 30px; margin-bottom: 10px;
+      border-radius: 9px; background: #eef0ff; color: var(--primary-dark); font-weight: 900;
+    }
+    .callout { border-left: 4px solid var(--teal); background: #effbf9; padding: 15px 17px; border-radius: 0 12px 12px 0; }
+    .callout.warn { border-color: var(--gold); background: #fff8e8; }
+    .callout strong { color: #11665f; }
+    .flow { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 26px 0 8px; }
+    .flow-step { padding: 13px 17px; border: 1px solid #cdd6ff; border-radius: 13px; background: #f1f3ff; color: #283b9d; font-weight: 850; text-align: center; }
+    .flow-step:nth-child(2) { border-color: #b8e7e2; background: #effbf9; color: #086b64; }
+    .flow-step:nth-child(3) { border-color: #f4dbac; background: #fff8e8; color: #916114; }
+    .arrow { color: #99a6bd; font-size: 1.5rem; font-weight: 900; }
+    .pill-label { display: inline-block; padding: 4px 9px; border-radius: 999px; background: #f0f2f7; color: var(--muted); font-size: .76rem; font-weight: 850; letter-spacing: .03em; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+    table { border-collapse: collapse; width: 100%; min-width: 620px; background: white; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { background: #f5f7fc; color: #42516c; font-size: .87rem; }
+    tr:last-child td { border-bottom: 0; }
+    .formula { padding: 13px 15px; background: var(--code); color: var(--code-ink); border-radius: 12px; overflow-x: auto; }
+    .formula code { white-space: nowrap; }
+    .step-list { counter-reset: item; list-style: none; padding: 0; margin: 0; }
+    .step-list li { counter-increment: item; display: grid; grid-template-columns: 34px 1fr; gap: 10px; margin: 12px 0; }
+    .step-list li::before { content: counter(item); display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: var(--primary); color: white; font-weight: 850; }
+    .code-card { overflow: hidden; padding: 0; background: var(--code); color: var(--code-ink); border: 1px solid #272f4c; }
+    .code-card .code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px; background: #1d233b; border-bottom: 1px solid #303854; }
+    .code-head strong { color: #fff; font-size: .95rem; }
+    .code-head span { color: #aeb8d8; font-size: .78rem; }
+    pre { margin: 0; padding: 18px; overflow-x: auto; font-size: .84rem; line-height: 1.7; tab-size: 4; }
+    .code-note { padding: 0 18px 18px; color: #b9c5e9; font-size: .9rem; }
+    .code-note strong { color: #fff; }
+    .mini-check { display: flex; gap: 9px; align-items: center; padding: 11px 13px; background: #f6f8fd; border-radius: 10px; margin-top: 13px; }
+    .mini-check input { accent-color: var(--primary); width: 17px; height: 17px; }
+    .feedback { margin-top: 10px; font-weight: 750; font-size: .92rem; }
+    .feedback.ok { color: var(--teal); }
+    .feedback.no { color: var(--danger); }
+    .simulator { background: linear-gradient(135deg, #202849, #172033); color: white; border: 0; }
+    .simulator p, .simulator label { color: #c8d2ef; }
+    .simulator input, .simulator select {
+      width: 100%; padding: 11px 12px; border-radius: 9px; border: 1px solid #56638d; background: #11172b; color: white; margin: 5px 0 12px;
+    }
+    .simulator output { display: block; min-height: 84px; margin-top: 17px; padding: 13px; border-radius: 10px; background: #11172b; color: #dce5ff; white-space: pre-wrap; font: .87rem/1.6 "SFMono-Regular", Consolas, monospace; }
+    .quiz-q { padding: 19px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+    .quiz-q + .quiz-q { margin-top: 13px; }
+    .quiz-q legend { padding: 0; font-weight: 800; }
+    .quiz-q label { display: block; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+    .quiz-q label:hover { background: #f2f4ff; }
+    .quiz-q input { accent-color: var(--primary); margin-right: 7px; }
+    .quiz-result { display: none; margin-top: 18px; padding: 18px; border-radius: 13px; background: #eef0ff; color: #293aa8; font-weight: 750; }
+    .quiz-result.show { display: block; }
+    .quiz-review { margin-top: 9px; color: var(--muted); font-weight: 500; font-size: .9rem; }
+    details { border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; background: white; }
+    details + details { margin-top: 9px; }
+    summary { cursor: pointer; font-weight: 800; }
+    footer { padding: 35px 0 55px; color: var(--muted); font-size: .9rem; text-align: center; }
+    .muted { color: var(--muted); }
+    .accent { color: var(--primary-dark); }
+    .mt { margin-top: 20px; }
+    @media (max-width: 780px) {
+      .topbar-inner { padding: 10px 0; align-items: flex-start; flex-direction: column; }
+      nav { gap: 9px 13px; }
+      .hero { padding-top: 45px; }
+      .grid.two, .grid.three { grid-template-columns: 1fr; }
+      .flow { align-items: stretch; flex-direction: column; }
+      .arrow { transform: rotate(90deg); align-self: center; }
+      section { padding: 31px 0; }
+    }
+    @media print {
+      .topbar, .hero-actions, .simulator, .quiz-actions, .btn { display: none !important; }
+      body { background: white; }
+      .card { box-shadow: none; break-inside: avoid; }
+      section { padding: 20px 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand"><span class="brand-mark">&lt;/&gt;</span><span>Modul PHP · P6</span></div>
+      <nav aria-label="Navigasi modul">
+        <a href="#konsep">Konsep</a>
+        <a href="#program">Program</a>
+        <a href="#simulator">Simulator</a>
+        <a href="#kuis">Kuis 20 Soal</a>
+        <a href="#kesimpulan">Kesimpulan</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="eyebrow">Basic Programming dengan PHP · Pertemuan 6</div>
+        <h1>Skema Pemrosesan Sekuensial</h1>
+        <p class="lead">Belajar memproses data <strong>satu per satu</strong> menggunakan pola yang bisa dipakai berulang: data masuk, diproses, diperiksa kondisi berhentinya, lalu hasil ditampilkan.</p>
+        <div class="chips">
+          <span class="chip">for</span><span class="chip">while</span><span class="chip">MARK / sentinel</span>
+          <span class="chip">akumulator</span><span class="chip">tanpa array</span><span class="chip">PHP browser</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn" href="#konsep">Mulai belajar ↓</a>
+          <a class="btn secondary" href="#kuis">Langsung cek pemahaman</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="tujuan">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">Target belajar</div>
+          <h2>Setelah modul ini, kamu bisa…</h2>
+          <p>Jangan menghafal bentuk loop saja. Pahami kapan loop dimulai, apa yang berubah pada setiap putaran, dan kapan ia harus berhenti.</p>
+        </div>
+        <div class="grid three">
+          <article class="card"><span class="number">1</span><h3>Memilih pola loop</h3><p>Menggunakan <code>for</code> saat jumlah data sudah diketahui, dan <code>while</code> saat jumlah data belum diketahui.</p></article>
+          <article class="card"><span class="number">2</span><h3>Menyusun algoritma</h3><p>Memisahkan input, proses satu per satu, kondisi berhenti, dan output dengan urutan yang masuk akal.</p></article>
+          <article class="card"><span class="number">3</span><h3>Mengolah statistik sederhana</h3><p>Menghitung total, rata-rata, maksimum, minimum, jumlah lulus, dan jumlah tidak lulus tanpa array.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="konsep">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">A · Konsep dasar</div>
+          <h2>Pemrosesan sekuensial itu apa?</h2>
+          <p>Pemrosesan sekuensial adalah cara mengolah data secara berurutan. Program menerima satu data, melakukan proses yang sama, lalu berpindah ke data berikutnya.</p>
+        </div>
+        <div class="card">
+          <div class="flow" aria-label="Input, proses, output">
+            <div class="flow-step">INPUT<br><small>data masuk</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-step">PROSES<br><small>olah satu per satu</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-step">OUTPUT<br><small>hasil akhir</small></div>
+          </div>
+          <div class="callout mt"><strong>Inti pola:</strong> pada setiap putaran, program mengerjakan satu data dengan aturan yang sama. Data sebelumnya diringkas ke dalam variabel seperti <code>$total</code>, <code>$jumlah</code>, atau <code>$terbesar</code>.</div>
+        </div>
+        <div class="grid two mt">
+          <article class="card">
+            <span class="pill-label">Contoh kehidupan sehari-hari</span>
+            <h3 class="mt">Menghitung nilai kelas</h3>
+            <ol class="step-list">
+              <li>Ambil nilai mahasiswa pertama.</li>
+              <li>Tambahkan nilai ke total dan naikkan penghitung.</li>
+              <li>Ulangi untuk nilai berikutnya.</li>
+              <li>Ketika data selesai, hitung dan tampilkan rata-rata.</li>
+            </ol>
+          </article>
+          <article class="card">
+            <span class="pill-label">Tiga pertanyaan kunci</span>
+            <h3 class="mt">Sebelum menulis kode</h3>
+            <ol class="step-list">
+              <li>Berapa banyak data yang akan masuk?</li>
+              <li>Variabel apa yang harus diperbarui di tiap putaran?</li>
+              <li>Apa kondisi yang membuat proses berhenti?</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="tanpa-mark">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">B · Tanpa MARK</div>
+          <h2>Jumlah data sudah diketahui: gunakan <code>for</code></h2>
+          <p>Program mengetahui jumlah pengulangan sejak awal, misalnya tepat 5 nilai atau sebanyak <code>$jumlahData</code> yang diberikan pengguna.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3>Pola umum</h3>
+            <div class="formula"><code>for ($i = 1; $i &lt;= $jumlahData; $i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;// input dan proses satu data<br>}</code></div>
+            <p class="muted mt">Variabel <code>$i</code> berperan sebagai penghitung putaran. Pada setiap akhir putaran, <code>$i</code> bertambah satu.</p>
+          </div>
+          <div class="card">
+            <h3>Contoh telusur singkat</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Putaran</th><th>Input</th><th><code>$total</code> setelah proses</th></tr></thead>
+                <tbody><tr><td>1</td><td>70</td><td>70</td></tr><tr><td>2</td><td>80</td><td>150</td></tr><tr><td>3</td><td>90</td><td>240</td></tr></tbody>
+              </table>
+            </div>
+            <p class="muted mt">Jika jumlah data = 3, loop berhenti setelah putaran ketiga. Rata-rata = <code>240 / 3 = 80</code>.</p>
+          </div>
+        </div>
+        <div class="card mt">
+          <h3>Akumulator: variabel yang “mengumpulkan” hasil</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tujuan</th><th>Inisialisasi</th><th>Pembaruan per data</th></tr></thead>
+              <tbody>
+                <tr><td>Jumlah data</td><td><code>$jumlah = 0;</code></td><td><code>$jumlah++;</code></td></tr>
+                <tr><td>Total</td><td><code>$total = 0;</code></td><td><code>$total += $nilai;</code></td></tr>
+                <tr><td>Jumlah lulus</td><td><code>$lulus = 0;</code></td><td><code>if ($nilai &gt;= 60) $lulus++;</code></td></tr>
+                <tr><td>Terbesar</td><td>Nilai pertama</td><td><code>if ($nilai &gt; $terbesar)</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mini-check">
+            <input type="checkbox" id="checkFor">
+            <label for="checkFor">Saya tahu kapan memilih <code>for</code>: jumlah data sudah diketahui sebelum pengulangan dimulai.</label>
+          </div>
+          <div id="forFeedback" class="feedback"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="dengan-mark">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">C · Dengan MARK</div>
+          <h2>Jumlah data belum diketahui: gunakan <code>while</code></h2>
+          <p><strong>MARK</strong> atau <em>sentinel</em> adalah nilai khusus yang menandai bahwa input selesai. MARK bukan data yang ikut dihitung.</p>
+        </div>
+        <div class="grid two">
+          <article class="card">
+            <span class="pill-label">Contoh MARK</span>
+            <h3 class="mt">Pilih tanda yang jelas</h3>
+            <ul>
+              <li><code>-1</code> untuk data angka yang tidak mungkin bernilai negatif.</li>
+              <li><code>"selesai"</code> untuk input teks.</li>
+              <li><code>0</code> hanya jika nilai 0 memang tidak valid sebagai data.</li>
+            </ul>
+            <div class="callout warn mt"><strong>Perhatian:</strong> jangan memilih MARK yang mungkin merupakan data sah. Jika nilai ujian boleh -1, maka <code>-1</code> bukan MARK yang aman.</div>
+          </article>
+          <article class="card">
+            <span class="pill-label">Pola umum</span>
+            <h3 class="mt">Baca → cek → proses</h3>
+            <div class="formula"><code>$nilai = bacaInput();<br>while ($nilai != -1) {<br>&nbsp;&nbsp;&nbsp;&nbsp;// proses nilai<br>&nbsp;&nbsp;&nbsp;&nbsp;$nilai = bacaInput();<br>}</code></div>
+            <p class="muted mt">Input berikutnya harus dibaca lagi di dalam loop. Tanpa itu, nilai tidak berubah dan loop dapat berjalan selamanya.</p>
+          </article>
+        </div>
+        <div class="card mt">
+          <h3>Alur dengan MARK</h3>
+          <div class="flow">
+            <div class="flow-step">Baca nilai</div><div class="arrow">→</div>
+            <div class="flow-step">Apakah MARK?</div><div class="arrow">→</div>
+            <div class="flow-step">Tidak: proses</div><div class="arrow">↺</div>
+            <div class="flow-step">Ya: selesai</div>
+          </div>
+          <p class="muted">Kata “tidak” mengarah ke tubuh loop; kata “ya” langsung keluar dari loop. Inilah perbedaan penting antara <strong>data</strong> dan <strong>penanda akhir data</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="statistik">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">Naik tingkat</div>
+          <h2>Statistik tanpa array</h2>
+          <p>Satu data masuk, beberapa ringkasan diperbarui. Ini memperkuat cara berpikir algoritmik sebelum belajar struktur data.</p>
+        </div>
+        <div class="grid three">
+          <article class="card"><h3>Total</h3><p>Tambahkan setiap nilai ke total.</p><div class="formula"><code>$total += $nilai;</code></div></article>
+          <article class="card"><h3>Rata-rata</h3><p>Hitung setelah semua data selesai.</p><div class="formula"><code>$rata = $total / $jumlah;</code></div></article>
+          <article class="card"><h3>Lulus / tidak</h3><p>Gunakan kondisi pada setiap nilai.</p><div class="formula"><code>if ($nilai &gt;= 60) $lulus++;</code></div></article>
+          <article class="card"><h3>Terbesar</h3><p>Bandingkan nilai saat ini dengan nilai terbesar.</p><div class="formula"><code>if ($nilai &gt; $max) $max = $nilai;</code></div></article>
+          <article class="card"><h3>Terkecil</h3><p>Bandingkan nilai saat ini dengan nilai terkecil.</p><div class="formula"><code>if ($nilai &lt; $min) $min = $nilai;</code></div></article>
+          <article class="card"><h3>Edge case</h3><p>Pastikan jumlah data tidak nol sebelum membagi rata-rata.</p><div class="formula"><code>if ($jumlah &gt; 0) { ... }</code></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="program">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">D · Studi kasus dan latihan program</div>
+          <h2>5 program PHP lengkap</h2>
+          <p>Semua contoh dibuat sebagai file <code>.php</code> yang menerima input melalui form browser. Simpan masing-masing kode, jalankan dengan server PHP lokal, lalu coba prediksi hasilnya sebelum menekan tombol.</p>
+        </div>
+
+        <article class="card code-card">
+          <div class="code-head"><div><strong>Program 1 · Total dan rata-rata dengan <code>for</code></strong><br><span>Form browser, jumlah data diketahui</span></div><button class="btn small secondary copy-btn" data-target="code1">Salin kode</button></div>
+          <pre id="code1"><code>&lt;?php
+// Program 1: form browser dengan for
+$hasil = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $jumlahData = (int) ($_POST["jumlah_data"] ?? 0);
+    $total = 0;
+
+    if ($jumlahData &lt; 1 || $jumlahData &gt; 5) {
+        $hasil = "Jumlah data harus antara 1 dan 5.";
+    } else {
+        for ($i = 1; $i &lt;= $jumlahData; $i++) {
+            // Nama input dibentuk dari nomor mahasiswa.
+            $namaInput = "nilai" . $i;
+            $nilai = (float) ($_POST[$namaInput] ?? 0);
+            $total += $nilai;
+        }
+
+        $rataRata = $total / $jumlahData;
+        $hasil = "Total nilai: $total\n";
+        $hasil .= "Rata-rata: " . number_format($rataRata, 2);
+    }
+}
+?&gt;
+&lt;!doctype html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title>Program 1 - Rata-rata Nilai&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1>Total dan Rata-rata Nilai&lt;/h1&gt;
+    &lt;form method="post"&gt;
+        &lt;label&gt;Jumlah mahasiswa (1-5):&lt;/label&gt;
+        &lt;input type="number" name="jumlah_data" min="1" max="5" required&gt;
+
+        &lt;p&gt;Isi nilai sesuai jumlah mahasiswa:&lt;/p&gt;
+        &lt;input type="number" name="nilai1" step="0.01" placeholder="Nilai 1"&gt;
+        &lt;input type="number" name="nilai2" step="0.01" placeholder="Nilai 2"&gt;
+        &lt;input type="number" name="nilai3" step="0.01" placeholder="Nilai 3"&gt;
+        &lt;input type="number" name="nilai4" step="0.01" placeholder="Nilai 4"&gt;
+        &lt;input type="number" name="nilai5" step="0.01" placeholder="Nilai 5"&gt;
+        &lt;br&gt;&lt;br&gt;
+        &lt;button type="submit"&gt;Hitung&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;?php if ($hasil !== ""): ?&gt;
+        &lt;pre&gt;&lt;?= htmlspecialchars($hasil) ?&gt;&lt;/pre&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <div class="code-note"><strong>Latihan:</strong> tambahkan variabel <code>$lulus</code> untuk menghitung nilai yang lebih besar atau sama dengan 60. Simpan sebagai <code>program1.php</code>, lalu buka melalui server PHP.</div>
+        </article>
+
+        <article class="card code-card mt">
+          <div class="code-head"><div><strong>Program 2 · Total dan rata-rata dengan MARK <code>-1</code></strong><br><span>Form browser, jumlah data belum diketahui</span></div><button class="btn small secondary copy-btn" data-target="code2">Salin kode</button></div>
+          <pre id="code2"><code>&lt;?php
+// Program 2: form browser dengan while dan MARK -1
+$hasil = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Array ini hanya menjadi jembatan untuk membaca input form.
+    $data = explode(",", $_POST["nilai"] ?? "");
+    $total = 0;
+    $jumlah = 0;
+    $i = 0;
+
+    while ($i &lt; count($data)) {
+        $nilai = (float) trim($data[$i]);
+
+        if ($nilai == -1) {
+            break; // MARK tidak ikut diproses.
+        }
+
+        $total += $nilai;
+        $jumlah++;
+        $i++;
+    }
+
+    if ($jumlah &gt; 0) {
+        $rataRata = $total / $jumlah;
+        $hasil = "Jumlah data: $jumlah\n";
+        $hasil .= "Total nilai: $total\n";
+        $hasil .= "Rata-rata: " . number_format($rataRata, 2);
+    } else {
+        $hasil = "Tidak ada nilai sebelum MARK -1.";
+    }
+}
+?&gt;
+&lt;!doctype html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title>Program 2 - MARK&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1>Total dan Rata-rata dengan MARK&lt;/h1&gt;
+    &lt;p&gt;Masukkan nilai dipisahkan koma. Akhiri dengan -1.&lt;/p&gt;
+    &lt;form method="post"&gt;
+        &lt;input type="text" name="nilai"
+               placeholder="Contoh: 70, 55, 90, -1" required&gt;
+        &lt;button type="submit"&gt;Proses&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;?php if ($hasil !== ""): ?&gt;
+        &lt;pre&gt;&lt;?= htmlspecialchars($hasil) ?&gt;&lt;/pre&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <div class="code-note"><strong>Perhatikan:</strong> masukkan <code>70, 55, 90, -1</code>. Nilai setelah <code>-1</code> diabaikan. Array hanya dipakai untuk menerima beberapa nilai dari satu form; logika utamanya tetap <code>while</code> dan MARK.</div>
+        </article>
+
+        <article class="card code-card mt">
+          <div class="code-head"><div><strong>Program 3 · Mencari nilai terbesar dan terkecil</strong><br><span>Form browser, inisialisasi dari data pertama</span></div><button class="btn small secondary copy-btn" data-target="code3">Salin kode</button></div>
+          <pre id="code3"><code>&lt;?php
+// Program 3: mencari nilai terbesar dan terkecil di browser
+$hasil = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $data = explode(",", $_POST["nilai"] ?? "");
+    $i = 0;
+    $jumlah = 0;
+    $terbesar = null;
+    $terkecil = null;
+
+    while ($i &lt; count($data)) {
+        $nilai = (float) trim($data[$i]);
+
+        if ($nilai == -1) {
+            break;
+        }
+
+        // Data pertama menjadi pembanding awal.
+        if ($terbesar === null || $nilai &gt; $terbesar) {
+            $terbesar = $nilai;
+        }
+        if ($terkecil === null || $nilai &lt; $terkecil) {
+            $terkecil = $nilai;
+        }
+
+        $jumlah++;
+        $i++;
+    }
+
+    if ($jumlah &gt; 0) {
+        $hasil = "Jumlah data: $jumlah\n";
+        $hasil .= "Nilai terbesar: $terbesar\n";
+        $hasil .= "Nilai terkecil: $terkecil";
+    } else {
+        $hasil = "Tidak ada data sebelum MARK -1.";
+    }
+}
+?&gt;
+&lt;!doctype html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title>Program 3 - Min Max&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1>Nilai Terbesar dan Terkecil&lt;/h1&gt;
+    &lt;p&gt;Contoh: 70, 55, 90, 40, -1&lt;/p&gt;
+    &lt;form method="post"&gt;
+        &lt;input type="text" name="nilai"
+               placeholder="Masukkan data nilai" required&gt;
+        &lt;button type="submit"&gt;Cari min dan max&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;?php if ($hasil !== ""): ?&gt;
+        &lt;pre&gt;&lt;?= htmlspecialchars($hasil) ?&gt;&lt;/pre&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <div class="code-note"><strong>Mengapa bukan <code>$terbesar = 0</code>?</strong> Karena semua nilai bisa saja negatif. Data pertama lebih aman dijadikan pembanding awal.</div>
+        </article>
+
+        <article class="card code-card mt">
+          <div class="code-head"><div><strong>Program 4 · Menghitung lulus dan tidak lulus</strong><br><span>Form browser, seleksi di dalam <code>while</code></span></div><button class="btn small secondary copy-btn" data-target="code4">Salin kode</button></div>
+          <pre id="code4"><code>&lt;?php
+// Program 4: menghitung jumlah lulus dan tidak lulus
+$hasil = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $data = explode(",", $_POST["nilai"] ?? "");
+    $lulus = 0;
+    $tidakLulus = 0;
+    $i = 0;
+
+    while ($i &lt; count($data)) {
+        $nilai = (float) trim($data[$i]);
+
+        if ($nilai == -1) {
+            break;
+        }
+
+        if ($nilai &gt;= 60) {
+            $lulus++;
+        } else {
+            $tidakLulus++;
+        }
+
+        $i++;
+    }
+
+    $jumlahData = $lulus + $tidakLulus;
+    $hasil = "Jumlah lulus: $lulus\n";
+    $hasil .= "Jumlah tidak lulus: $tidakLulus\n";
+    $hasil .= "Jumlah seluruhnya: $jumlahData";
+}
+?&gt;
+&lt;!doctype html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title>Program 4 - Kelulusan&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1>Status Kelulusan&lt;/h1&gt;
+    &lt;p&gt;Batas lulus adalah 60. Akhiri data dengan -1.&lt;/p&gt;
+    &lt;form method="post"&gt;
+        &lt;input type="text" name="nilai"
+               placeholder="Contoh: 80, 55, 60, 40, -1" required&gt;
+        &lt;button type="submit"&gt;Buat rekap&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;?php if ($hasil !== ""): ?&gt;
+        &lt;pre&gt;&lt;?= htmlspecialchars($hasil) ?&gt;&lt;/pre&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <div class="code-note"><strong>Uji dengan:</strong> <code>80, 55, 60, 40, -1</code>. Nilai tepat 60 termasuk lulus karena operator yang digunakan adalah <code>&gt;=</code>.</div>
+        </article>
+
+        <article class="card code-card mt">
+          <div class="code-head"><div><strong>Program 5 · Rekap lengkap satu kali jalan</strong><br><span>Form browser: total, rata-rata, min, max, lulus, tidak lulus</span></div><button class="btn small secondary copy-btn" data-target="code5">Salin kode</button></div>
+          <pre id="code5"><code>&lt;?php
+// Program 5: rekap lengkap nilai dari form browser
+$hasil = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $data = explode(",", $_POST["nilai"] ?? "");
+    $total = 0;
+    $jumlah = 0;
+    $lulus = 0;
+    $tidakLulus = 0;
+    $terbesar = null;
+    $terkecil = null;
+    $i = 0;
+
+    while ($i &lt; count($data)) {
+        $nilai = (float) trim($data[$i]);
+
+        if ($nilai == -1) {
+            break;
+        }
+
+        $total += $nilai;
+        $jumlah++;
+
+        if ($nilai &gt;= 60) {
+            $lulus++;
+        } else {
+            $tidakLulus++;
+        }
+
+        if ($terbesar === null || $nilai &gt; $terbesar) {
+            $terbesar = $nilai;
+        }
+        if ($terkecil === null || $nilai &lt; $terkecil) {
+            $terkecil = $nilai;
+        }
+
+        $i++;
+    }
+
+    if ($jumlah &gt; 0) {
+        $rataRata = $total / $jumlah;
+        $persenLulus = ($lulus / $jumlah) * 100;
+        $hasil = "Jumlah data: $jumlah\n";
+        $hasil .= "Total nilai: $total\n";
+        $hasil .= "Rata-rata: " . number_format($rataRata, 2) . "\n";
+        $hasil .= "Nilai terbesar: $terbesar\n";
+        $hasil .= "Nilai terkecil: $terkecil\n";
+        $hasil .= "Jumlah lulus: $lulus\n";
+        $hasil .= "Jumlah tidak lulus: $tidakLulus\n";
+        $hasil .= "Persentase lulus: " . number_format($persenLulus, 2) . "%";
+    } else {
+        $hasil = "Tidak ada data sebelum MARK -1.";
+    }
+}
+?&gt;
+&lt;!doctype html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title>Program 5 - Rekap Lengkap&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1>Rekap Lengkap Nilai&lt;/h1&gt;
+    &lt;p&gt;Masukkan data, lalu akhiri dengan -1.&lt;/p&gt;
+    &lt;form method="post"&gt;
+        &lt;textarea name="nilai" rows="4" cols="50"
+                  placeholder="70, 55, 90, 40, -1" required&gt;&lt;/textarea&gt;
+        &lt;br&gt;
+        &lt;button type="submit"&gt;Tampilkan rekap&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;?php if ($hasil !== ""): ?&gt;
+        &lt;pre&gt;&lt;?= htmlspecialchars($hasil) ?&gt;&lt;/pre&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <div class="code-note"><strong>Tantangan:</strong> ubah batas lulus menjadi 75. Program ini melakukan seluruh rekap dalam satu proses sekuensial tanpa perlu mengulang data berkali-kali.</div>
+        </article>
+
+        <div class="card mt">
+          <h3>Cara menjalankan program PHP di browser</h3>
+          <ol class="step-list">
+            <li>Simpan salah satu kode sebagai file, misalnya <code>program1.php</code>.</li>
+            <li>Letakkan file di folder server PHP, misalnya folder <code>htdocs</code> pada XAMPP.</li>
+            <li>Jalankan Apache, lalu buka <code>http://localhost/program1.php</code> di browser.</li>
+            <li>Isi form. Untuk program dengan MARK, akhiri data dengan <code>-1</code>.</li>
+          </ol>
+          <div class="callout mt"><strong>Catatan:</strong> file modul ini bisa dibuka langsung di browser sebagai bahan belajar. Contoh program PHP dijalankan melalui server PHP seperti XAMPP, Laragon, atau server lokal PHP karena browser tidak mengeksekusi PHP secara langsung.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulator">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">Eksperimen interaktif</div>
+          <h2>Simulasikan proses satu per satu</h2>
+          <p>Masukkan data dipisahkan koma. Simulator ini berjalan di browser dengan JavaScript untuk memperlihatkan jejak algoritmanya; struktur berpikirnya sama dengan program PHP.</p>
+        </div>
+        <div class="card simulator">
+          <div class="grid two">
+            <div>
+              <label for="simMode">Pola pengulangan</label>
+              <select id="simMode">
+                <option value="for">for · jumlah data diketahui</option>
+                <option value="mark">while · berhenti dengan -1</option>
+              </select>
+              <label for="simInput">Data nilai (pisahkan dengan koma)</label>
+              <input id="simInput" value="70, 55, 90, 40, 80" aria-label="Data nilai">
+              <button class="btn" id="runSim">Jalankan simulasi</button>
+            </div>
+            <div>
+              <p><strong>Yang diamati:</strong> nilai masuk satu per satu, total berubah, penghitung bertambah, dan nilai terbesar/terkecil diperbarui.</p>
+              <output id="simOutput" aria-live="polite">Hasil simulasi akan tampil di sini.</output>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="kuis">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">Cek pemahaman</div>
+          <h2>Latihan pilihan ganda · 20 soal</h2>
+          <p>Soal mencakup fondasi pertemuan sebelumnya—fungsi, variabel, operator, percabangan, dan looping—serta pemrosesan sekuensial pada pertemuan ini. Pilih satu jawaban setiap soal.</p>
+        </div>
+        <form id="quizForm">
+          <fieldset class="quiz-q">
+            <legend>1. Apa fungsi variabel <code>$total</code> pada pengolahan nilai?</legend>
+            <label><input type="radio" name="q1" value="a"> Menyimpan jumlah seluruh nilai yang sudah diproses</label>
+            <label><input type="radio" name="q1" value="b"> Menyimpan nama file PHP</label>
+            <label><input type="radio" name="q1" value="c"> Menghentikan loop</label>
+            <label><input type="radio" name="q1" value="d"> Mengubah PHP menjadi HTML</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>2. Operator penugasan penjumlahan yang setara dengan <code>$total = $total + $nilai</code> adalah…</legend>
+            <label><input type="radio" name="q2" value="a"> <code>$total == $nilai</code></label>
+            <label><input type="radio" name="q2" value="b"> <code>$total += $nilai</code></label>
+            <label><input type="radio" name="q2" value="c"> <code>$total ++ $nilai</code></label>
+            <label><input type="radio" name="q2" value="d"> <code>$total =&gt; $nilai</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>3. Tipe data hasil dari <code>(int) "25"</code> adalah…</legend>
+            <label><input type="radio" name="q3" value="a"> string</label>
+            <label><input type="radio" name="q3" value="b"> boolean</label>
+            <label><input type="radio" name="q3" value="c"> integer</label>
+            <label><input type="radio" name="q3" value="d"> array</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>4. Operator yang tepat untuk membandingkan nilai dan tipe data sekaligus adalah…</legend>
+            <label><input type="radio" name="q4" value="a"> <code>=</code></label>
+            <label><input type="radio" name="q4" value="b"> <code>==</code></label>
+            <label><input type="radio" name="q4" value="c"> <code>!=</code></label>
+            <label><input type="radio" name="q4" value="d"> <code>===</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>5. Apa hasil dari <code>10 % 3</code>?</legend>
+            <label><input type="radio" name="q5" value="a"> 0</label>
+            <label><input type="radio" name="q5" value="b"> 1</label>
+            <label><input type="radio" name="q5" value="c"> 3</label>
+            <label><input type="radio" name="q5" value="d"> 3.33</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>6. Manakah deklarasi fungsi PHP yang benar?</legend>
+            <label><input type="radio" name="q6" value="a"> <code>function hitung() { }</code></label>
+            <label><input type="radio" name="q6" value="b"> <code>def hitung():</code></label>
+            <label><input type="radio" name="q6" value="c"> <code>func hitung[]</code></label>
+            <label><input type="radio" name="q6" value="d"> <code>function = hitung()</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>7. Kata kunci untuk mengembalikan nilai dari sebuah fungsi adalah…</legend>
+            <label><input type="radio" name="q7" value="a"> <code>send</code></label>
+            <label><input type="radio" name="q7" value="b"> <code>output</code></label>
+            <label><input type="radio" name="q7" value="c"> <code>return</code></label>
+            <label><input type="radio" name="q7" value="d"> <code>back</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>8. Apa hasil dari fungsi berikut? <code>function kali($a, $b) { return $a * $b; }</code> lalu <code>kali(4, 3)</code></legend>
+            <label><input type="radio" name="q8" value="a"> 7</label>
+            <label><input type="radio" name="q8" value="b"> 12</label>
+            <label><input type="radio" name="q8" value="c"> 43</label>
+            <label><input type="radio" name="q8" value="d"> error karena fungsi tidak boleh memiliki parameter</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>9. Loop yang paling sesuai jika pengulangan harus dilakukan tepat 10 kali adalah…</legend>
+            <label><input type="radio" name="q9" value="a"> <code>for</code></label>
+            <label><input type="radio" name="q9" value="b"> <code>switch</code></label>
+            <label><input type="radio" name="q9" value="c"> <code>if</code></label>
+            <label><input type="radio" name="q9" value="d"> <code>echo</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>10. Pada <code>for ($i = 1; $i &lt;= 3; $i++)</code>, berapa kali isi loop dijalankan?</legend>
+            <label><input type="radio" name="q10" value="a"> 1 kali</label>
+            <label><input type="radio" name="q10" value="b"> 2 kali</label>
+            <label><input type="radio" name="q10" value="c"> 3 kali</label>
+            <label><input type="radio" name="q10" value="d"> 4 kali</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>11. Apa tujuan utama dari <code>$jumlah++</code>?</legend>
+            <label><input type="radio" name="q11" value="a"> Mengurangi jumlah satu</label>
+            <label><input type="radio" name="q11" value="b"> Menambah jumlah satu</label>
+            <label><input type="radio" name="q11" value="c"> Membuat jumlah menjadi nol</label>
+            <label><input type="radio" name="q11" value="d"> Membandingkan jumlah dengan nilai</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>12. Kapan <code>while</code> paling tepat digunakan dalam modul ini?</legend>
+            <label><input type="radio" name="q12" value="a"> Saat jumlah data belum diketahui dan ada kondisi berhenti</label>
+            <label><input type="radio" name="q12" value="b"> Saat tidak ada proses sama sekali</label>
+            <label><input type="radio" name="q12" value="c"> Hanya untuk mencetak HTML</label>
+            <label><input type="radio" name="q12" value="d"> Saat ingin mendeklarasikan fungsi</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>13. Dalam program nilai, apa yang dimaksud dengan MARK?</legend>
+            <label><input type="radio" name="q13" value="a"> Nilai tertinggi</label>
+            <label><input type="radio" name="q13" value="b"> Tanda khusus bahwa input selesai</label>
+            <label><input type="radio" name="q13" value="c"> Nama variabel total</label>
+            <label><input type="radio" name="q13" value="d"> Fungsi untuk membulatkan angka</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>14. Jika <code>-1</code> dipakai sebagai MARK, apakah <code>-1</code> masuk ke total nilai?</legend>
+            <label><input type="radio" name="q14" value="a"> Ya, selalu</label>
+            <label><input type="radio" name="q14" value="b"> Hanya jika data pertama</label>
+            <label><input type="radio" name="q14" value="c"> Tidak, karena ia diperiksa sebelum diproses</label>
+            <label><input type="radio" name="q14" value="d"> Hanya jika total sudah lebih dari 0</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>15. Apa risiko jika input tidak dibaca ulang di dalam <code>while</code>?</legend>
+            <label><input type="radio" name="q15" value="a"> Program otomatis menjadi lebih cepat</label>
+            <label><input type="radio" name="q15" value="b"> Loop bisa tidak pernah berhenti</label>
+            <label><input type="radio" name="q15" value="c"> Semua variabel berubah menjadi array</label>
+            <label><input type="radio" name="q15" value="d"> PHP menghapus fungsi</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>16. Rumus rata-rata yang benar adalah…</legend>
+            <label><input type="radio" name="q16" value="a"> <code>$jumlah / $total</code></label>
+            <label><input type="radio" name="q16" value="b"> <code>$total * $jumlah</code></label>
+            <label><input type="radio" name="q16" value="c"> <code>$total / $jumlah</code></label>
+            <label><input type="radio" name="q16" value="d"> <code>$total - $jumlah</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>17. Mengapa rata-rata tidak boleh langsung dihitung saat <code>$jumlah == 0</code>?</legend>
+            <label><input type="radio" name="q17" value="a"> Karena pembagian dengan nol tidak valid</label>
+            <label><input type="radio" name="q17" value="b"> Karena <code>$total</code> harus berupa teks</label>
+            <label><input type="radio" name="q17" value="c"> Karena loop harus selalu memakai array</label>
+            <label><input type="radio" name="q17" value="d"> Karena operator <code>/</code> hanya untuk string</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>18. Cara aman menginisialisasi nilai terbesar dan terkecil ketika data bisa negatif adalah…</legend>
+            <label><input type="radio" name="q18" value="a"> Selalu mulai dari 0</label>
+            <label><input type="radio" name="q18" value="b"> Gunakan nilai pertama sebagai pembanding awal</label>
+            <label><input type="radio" name="q18" value="c"> Gunakan MARK sebagai nilai terbesar</label>
+            <label><input type="radio" name="q18" value="d"> Jangan gunakan kondisi</label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>19. Jika batas lulus adalah 60, operator yang benar agar nilai 60 dinyatakan lulus adalah…</legend>
+            <label><input type="radio" name="q19" value="a"> <code>&gt;</code></label>
+            <label><input type="radio" name="q19" value="b"> <code>&lt;</code></label>
+            <label><input type="radio" name="q19" value="c"> <code>&gt;=</code></label>
+            <label><input type="radio" name="q19" value="d"> <code>!=</code></label>
+          </fieldset>
+          <fieldset class="quiz-q">
+            <legend>20. Urutan pola pemrosesan sekuensial yang paling tepat adalah…</legend>
+            <label><input type="radio" name="q20" value="a"> Output → hapus data → input → proses</label>
+            <label><input type="radio" name="q20" value="b"> Data masuk → proses satu per satu → kondisi berhenti → hasil</label>
+            <label><input type="radio" name="q20" value="c"> Array → database → form → output</label>
+            <label><input type="radio" name="q20" value="d"> Fungsi → CSS → HTML → loop</label>
+          </fieldset>
+          <div class="hero-actions quiz-actions mt">
+            <button class="btn" type="submit">Periksa jawaban</button>
+            <button class="btn secondary" type="reset">Reset kuis</button>
+          </div>
+        </form>
+        <div id="quizResult" class="quiz-result" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="kesimpulan">
+      <div class="wrap">
+        <div class="section-heading">
+          <div class="eyebrow">Penutup</div>
+          <h2>Kesimpulan</h2>
+        </div>
+        <div class="card">
+          <p>Pemrosesan sekuensial melatih kita mengolah data secara teratur: <strong>data masuk, diproses satu per satu, diperiksa kondisi berhentinya, lalu hasil ditampilkan</strong>. Saat jumlah data sudah diketahui, gunakan <code>for</code>. Saat jumlahnya belum diketahui, gunakan <code>while</code> dengan MARK yang tidak mungkin tertukar dengan data valid.</p>
+          <p>Dengan variabel akumulator, satu kali perjalanan melalui data sudah cukup untuk menghitung total, rata-rata, nilai terbesar, nilai terkecil, jumlah lulus, dan jumlah tidak lulus. Pastikan setiap variabel diinisialisasi, input berikutnya dibaca di dalam loop, MARK tidak ikut dihitung, dan pembagian nol ditangani.</p>
+          <div class="callout mt"><strong>Jembatan ke materi berikutnya:</strong> setelah pola “satu data setiap putaran” benar-benar dipahami, barulah array menjadi alat untuk menyimpan banyak data. Array bukan pengganti algoritma; ia hanya membantu menyimpan data yang algoritmanya sudah kita pahami.</div>
+        </div>
+        <div class="grid two mt">
+          <details><summary>Checklist sebelum mengumpulkan program</summary><ul><li>Apakah variabel sudah diberi nilai awal?</li><li>Apakah kondisi loop bisa menjadi salah?</li><li>Apakah MARK tidak ikut diproses?</li><li>Apakah rata-rata aman saat tidak ada data?</li></ul></details>
+          <details><summary>Tantangan mandiri</summary><p>Buat program yang membaca suhu sampai MARK <code>999</code>, kemudian menampilkan jumlah data, rata-rata suhu, suhu tertinggi, dan jumlah suhu di atas 30°C.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Modul belajar mandiri · Basic Programming dengan PHP · Pertemuan 6<br>
+    Dibuat agar bisa dibaca offline, dicetak, dan dipakai sebagai bahan latihan kelas.
+  </footer>
+
+  <script>
+    // Tombol salin untuk semua source code.
+    document.querySelectorAll(".copy-btn").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const code = document.getElementById(button.dataset.target).innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          const oldText = button.textContent;
+          button.textContent = "Tersalin ✓";
+          setTimeout(function () { button.textContent = oldText; }, 1400);
+        } catch (error) {
+          button.textContent = "Salin manual";
+          setTimeout(function () { button.textContent = "Salin kode"; }, 1400);
+        }
+      });
+    });
+
+    // Cek kecil untuk bagian for.
+    document.getElementById("checkFor").addEventListener("change", function () {
+      const feedback = document.getElementById("forFeedback");
+      feedback.textContent = this.checked
+        ? "Benar. for cocok ketika jumlah putaran dapat ditentukan sejak awal."
+        : "";
+      feedback.className = this.checked ? "feedback ok" : "feedback";
+    });
+
+    // Simulator jejak pemrosesan: hanya visualisasi algoritma, bukan eksekusi PHP.
+    document.getElementById("runSim").addEventListener("click", function () {
+      const mode = document.getElementById("simMode").value;
+      const raw = document.getElementById("simInput").value.split(",").map(function (item) {
+        return Number(item.trim());
+      }).filter(function (value) { return Number.isFinite(value); });
+      const values = mode === "mark" ? raw : raw.slice();
+      let total = 0, count = 0, max = null, min = null, trace = [];
+
+      if (mode === "mark") {
+        const markIndex = values.indexOf(-1);
+        if (markIndex >= 0) values.splice(markIndex);
+      }
+      values.forEach(function (value, index) {
+        total += value;
+        count++;
+        if (max === null || value > max) max = value;
+        if (min === null || value < min) min = value;
+        trace.push("Putaran " + (index + 1) + ": nilai " + value + " → total " + total + ", jumlah " + count);
+      });
+      const markText = mode === "mark" ? "\nMARK -1 ditemukan atau input selesai." : "\nJumlah putaran berasal dari banyak data.";
+      const summary = count
+        ? "\n\nHasil: total " + total + ", rata-rata " + (total / count).toFixed(2) + ", terbesar " + max + ", terkecil " + min
+        : "\n\nBelum ada data yang diproses.";
+      document.getElementById("simOutput").textContent = trace.join("\n") + markText + summary;
+    });
+
+    // Kuis 20 soal.
+    const answers = {
+      q1: "a", q2: "b", q3: "c", q4: "d", q5: "b",
+      q6: "a", q7: "c", q8: "b", q9: "a", q10: "c",
+      q11: "b", q12: "a", q13: "b", q14: "c", q15: "b",
+      q16: "c", q17: "a", q18: "b", q19: "c", q20: "b"
+    };
+    document.getElementById("quizForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      let score = 0, unanswered = 0;
+      Object.keys(answers).forEach(function (name) {
+        const selected = document.querySelector('input[name="' + name + '"]:checked');
+        if (!selected) unanswered++;
+        else if (selected.value === answers[name]) score++;
+      });
+      const result = document.getElementById("quizResult");
+      const percent = Math.round(score / 20 * 100);
+      let message = "Skor kamu " + score + "/20 (" + percent + "%). ";
+      if (score >= 17) message += "Sangat baik—pola algoritmanya sudah kuat.";
+      else if (score >= 13) message += "Cukup kuat—ulang bagian yang masih ragu.";
+      else message += "Baca kembali konsep for, while, MARK, dan akumulator, lalu coba lagi.";
+      if (unanswered) message += " " + unanswered + " soal belum dijawab.";
+      result.innerHTML = message + '<div class="quiz-review">Kunci dan pembahasan singkat dapat dicocokkan dari konsep serta contoh program di atas.</div>';
+      result.classList.add("show");
+      result.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    document.getElementById("quizForm").addEventListener("reset", function () {
+      document.getElementById("quizResult").classList.remove("show");
+    });
+  </script>
+</body>
+</html>

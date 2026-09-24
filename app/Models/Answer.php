@@ -10,6 +10,7 @@ class Answer extends Model
         'user_id',
         'question_id',
         'answer_text',
+        'selected_option',
         'estimated_score',
     ];
 
@@ -23,13 +24,17 @@ class Answer extends Model
         return $this->belongsTo(Question::class);
     }
 
-    /**
-     * Estimasi skor berdasarkan kesesuaian jawaban dengan kunci.
-     * Menggunakan pencocokan kata kunci (keyword matching).
-     */
     public function calculateEstimatedScore(): float
     {
-        $keywords = $this->question->keywords ?? [];
+        $question = $this->question;
+        $maxPoints = $question->points ?? 5;
+
+        if ($question->type === 'pilihan_ganda') {
+            return $this->selected_option === $question->answer_key ? $maxPoints : 0;
+        }
+
+        // isian & coding: keyword matching
+        $keywords = $question->keywords ?? [];
         if (empty($keywords) || empty($this->answer_text)) {
             return 0;
         }
@@ -44,9 +49,7 @@ class Answer extends Model
         }
 
         $ratio = $matched / count($keywords);
-        $maxPoints = $this->question->points ?? 5;
 
-        // Skala progresif: ≥80% → penuh; 50–79% → 60%; 20–49% → 30%; <20% → 10%
         if ($ratio >= 0.8) {
             return $maxPoints;
         } elseif ($ratio >= 0.5) {

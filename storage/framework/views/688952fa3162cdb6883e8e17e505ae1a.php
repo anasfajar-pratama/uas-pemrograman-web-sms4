@@ -9,7 +9,7 @@
             <div>
                 <h1 class="text-2xl font-bold">✅ Ujian Telah Dikumpulkan</h1>
                 <p class="text-green-100 text-sm mt-1"><?php echo e(auth()->user()->name); ?> — <?php echo e(auth()->user()->nim); ?></p>
-                <p class="text-green-100 text-xs mt-0.5">Selesai: <?php echo e($session->finished_at->format('d M Y, H:i')); ?></p>
+                <p class="text-green-200 text-xs mt-0.5"><?php echo e($exam->name); ?> | Selesai: <?php echo e($session->finished_at->format('d M Y, H:i')); ?></p>
             </div>
             <div class="text-center">
                 <div class="text-4xl font-black"><?php echo e($session->estimated_grade); ?><span class="text-xl">/100</span></div>
@@ -59,10 +59,19 @@
 
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs text-gray-500 mb-1 truncate"><?php echo e(Str::limit($answer->question->question_text, 100)); ?></p>
+                    <div class="flex items-center gap-2 mb-1">
+                        <p class="text-xs text-gray-500 truncate"><?php echo e(Str::limit($answer->question->question_text, 100)); ?></p>
+                        <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full flex-shrink-0"><?php echo e($answer->question->type_label); ?></span>
+                    </div>
                     <div class="bg-gray-50 border rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-line max-h-28 overflow-y-auto">
-                        <?php echo e($answer->answer_text ?: '(tidak dijawab)'); ?>
+                        <?php if($answer->question->type === 'pilihan_ganda'): ?>
+                            <span class="font-bold text-blue-700"><?php echo e($answer->selected_option ?? '-'); ?>.</span>
+                            <?php echo e($answer->answer_text ?: '(tidak dijawab)'); ?>
 
+                        <?php else: ?>
+                            <?php echo e($answer->answer_text ?: '(tidak dijawab)'); ?>
+
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="flex-shrink-0 text-center">
@@ -70,11 +79,18 @@
                         <?php echo e($answer->estimated_score); ?>
 
                     </div>
-                    <div class="text-xs text-gray-400">/5</div>
+                    <div class="text-xs text-gray-400">/<?php echo e($answer->question->points); ?></div>
                 </div>
             </div>
         </div>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="<?php echo e(route('ujian.enter-code')); ?>"
+           class="inline-block text-sm bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl transition font-semibold shadow">
+            ← Kembali ke Daftar Ujian
+        </a>
     </div>
 
     <div class="mt-4 text-center text-xs text-gray-400">

@@ -8,6 +8,7 @@ class ExamSession extends Model
 {
     protected $fillable = [
         'user_id',
+        'exam_id',
         'started_at',
         'last_active_at',
         'elapsed_seconds',
@@ -31,28 +32,27 @@ class ExamSession extends Model
         return $this->belongsTo(User::class);
     }
 
-    public const EXAM_DURATION = 7200; // 120 menit dalam detik
+    public function exam()
+    {
+        return $this->belongsTo(Exam::class);
+    }
 
-    /**
-     * Sisa waktu dalam detik.
-     */
+    public function getExamDurationSecondsAttribute(): int
+    {
+        return $this->exam ? $this->exam->duration_minutes * 60 : 7200;
+    }
+
     public function getRemainingSecondsAttribute(): int
     {
-        $remaining = self::EXAM_DURATION - $this->elapsed_seconds;
+        $remaining = $this->exam_duration_seconds - $this->elapsed_seconds;
         return max(0, $remaining);
     }
 
-    /**
-     * Apakah waktu ujian sudah habis?
-     */
     public function isTimeUp(): bool
     {
-        return $this->elapsed_seconds >= self::EXAM_DURATION;
+        return $this->elapsed_seconds >= $this->exam_duration_seconds;
     }
 
-    /**
-     * Apakah ujian sudah selesai (submit)?
-     */
     public function isFinished(): bool
     {
         return $this->finished_at !== null;

@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('exam_sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('exam_id')->constrained()->onDelete('cascade');
             $table->timestamp('started_at');
             $table->timestamp('last_active_at')->nullable();
             $table->unsignedInteger('elapsed_seconds')->default(0);
@@ -19,6 +20,8 @@ return new class extends Migration
             $table->text('grade_reason')->nullable();
             $table->unsignedTinyInteger('estimated_grade')->nullable();
             $table->timestamps();
+
+            $table->unique(['user_id', 'exam_id']);
         });
     }
 

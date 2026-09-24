@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\ExamSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +23,7 @@ class AuthController extends Controller
             'nim'        => 'required|string|max:20|unique:users,nim',
             'email'      => 'required|email|unique:users,email',
             'password'   => ['required', 'confirmed', Password::min(6)],
-            'foto_wajah' => 'required|string', // base64 dari webcam
+            'foto_wajah' => 'required|string',
         ], [
             'name.required'      => 'Nama wajib diisi.',
             'nim.required'       => 'NIM wajib diisi.',
@@ -36,7 +35,6 @@ class AuthController extends Controller
             'foto_wajah.required'=> 'Foto wajah wajib diambil.',
         ]);
 
-        // Decode & simpan foto base64
         $base64 = $request->foto_wajah;
         if (!preg_match('/^data:image\/(jpeg|png|webp);base64,/', $base64)) {
             return back()->withErrors(['foto_wajah' => 'Format foto tidak valid.'])->withInput();
@@ -44,7 +42,6 @@ class AuthController extends Controller
 
         $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $base64));
         $filename  = 'foto-wajah/' . uniqid() . '.jpg';
-        // Simpan langsung ke public_html/uploads/ (bypass storage link)
         $uploadDir = dirname($_SERVER['DOCUMENT_ROOT']) . '/public_html/uploads/foto-wajah/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         file_put_contents($uploadDir . basename($filename), $imageData);
@@ -59,10 +56,9 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
-        $this->initOrResumeSession($user);
 
-        return redirect()->route('ujian.index')
-            ->with('success', 'Registrasi berhasil! Selamat mengerjakan ujian.');
+        return redirect()->route('ujian.enter-code')
+            ->with('success', 'Registrasi berhasil! Silakan masukkan kode ujian.');
     }
 
     public function showLogin()
@@ -80,7 +76,6 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
-        // Coba login dengan email atau NIM
         $credentials = filter_var($request->login, FILTER_VALIDATE_EMAIL)
             ? ['email' => $request->login, 'password' => $request->password]
             : ['nim'   => $request->login, 'password' => $request->password];
@@ -93,8 +88,7 @@ class AuthController extends Controller
         $user = Auth::user();
 
         if ($user->isMahasiswa()) {
-            $this->initOrResumeSession($user);
-            return redirect()->route('ujian.index');
+            return redirect()->route('ujian.enter-code');
         }
 
         return redirect()->route('dosen.dashboard');
@@ -102,41 +96,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Simpan elapsed time sebelum logout
-        $user = Auth::user();
-        if ($user && $user->isMahasiswa()) {
-            $session = $user->examSession;
-            if ($session && !$session->isFinished()) {
-                $session->last_active_at = now();
-                $session->save();
-            }
-        }
-
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('info', 'Anda telah logout. Timer ujian dijeda.');
-    }
-
-    /**
-     * Inisiasi sesi ujian baru, atau lanjutkan yang sudah ada.
-     */
-    private function initOrResumeSession(User $user): void
-    {
-        $session = ExamSession::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'started_at'      => now(),
-                'last_active_at'  => now(),
-                'elapsed_seconds' => 0,
-            ]
-        );
-
-        if (!$session->wasRecentlyCreated) {
-            // Lanjutkan — update last_active_at saja
-            $session->last_active_at = now();
-            $session->save();
-        }
+        return redirect()->route('login')->with('info', 'Anda telah logout.');
     }
 }

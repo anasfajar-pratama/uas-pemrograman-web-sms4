@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Soal UAS')
+@section('title', 'Soal UAS — ' . $exam->name)
 
 @section('content')
 <div class="max-w-4xl mx-auto">
@@ -7,14 +7,14 @@
     {{-- Info Bar --}}
     <div class="bg-white border border-blue-200 rounded-2xl p-4 mb-6 flex flex-wrap gap-4 items-center justify-between shadow-sm">
         <div>
-            <h1 class="text-lg font-bold text-gray-900">UJIAN AKHIR SEMESTER</h1>
-            <p class="text-sm text-gray-500">Pemrograman Web — React &amp; Laravel REST API</p>
+            <h1 class="text-lg font-bold text-gray-900">{{ $exam->name }}</h1>
+            <p class="text-sm text-gray-500">Kode: <code class="font-mono font-bold">{{ $exam->code }}</code></p>
         </div>
         <div class="flex flex-wrap gap-3 text-sm text-gray-600">
-            <span class="bg-gray-100 px-3 py-1 rounded-lg"><b>20</b> soal</span>
-            <span class="bg-gray-100 px-3 py-1 rounded-lg"><b>100</b> poin total</span>
+            <span class="bg-gray-100 px-3 py-1 rounded-lg"><b>{{ $totalQuestions }}</b> soal</span>
+            <span class="bg-gray-100 px-3 py-1 rounded-lg"><b>{{ $totalPoints }}</b> poin total</span>
             <span id="answered-badge" class="bg-green-100 text-green-700 px-3 py-1 rounded-lg font-semibold">
-                <span id="answered-count">{{ $answers->count() }}</span>/20 dijawab
+                <span id="answered-count">{{ $answers->where('answer_text', '!=', '')->count() }}</span>/{{ $totalQuestions }} dijawab
             </span>
         </div>
     </div>
@@ -30,16 +30,16 @@
     {{-- Questions --}}
     @php
         $sections = [
-            'teori'  => ['label' => 'Bagian A — Teori (Soal 1–6)',    'color' => 'blue'],
-            'logika' => ['label' => 'Bagian B — Logika (Soal 7–12)',   'color' => 'yellow'],
-            'coding' => ['label' => 'Bagian C — Coding (Soal 13–20)',  'color' => 'green'],
+            'teori'  => ['label' => 'Bagian — Teori',    'color' => 'blue'],
+            'logika' => ['label' => 'Bagian — Logika',   'color' => 'yellow'],
+            'coding' => ['label' => 'Bagian — Coding',   'color' => 'green'],
         ];
         $currentSection = null;
     @endphp
 
     @foreach($questions as $question)
         @if($currentSection !== $question->section)
-            @php $currentSection = $question->section; $sec = $sections[$currentSection]; @endphp
+            @php $currentSection = $question->section; $sec = $sections[$currentSection] ?? ['label' => ucfirst($currentSection), 'color' => 'gray']; @endphp
             <div class="mt-8 mb-4">
                 <span class="inline-block section-{{ $currentSection }} text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full">
                     {{ $sec['label'] }}
@@ -48,7 +48,11 @@
         @endif
 
         @php
-            $answered = isset($answers[$question->id]) && trim($answers[$question->id]) !== '';
+            $answer = $answers[$question->id] ?? null;
+            $answered = $answer && trim($answer->answer_text ?? '') !== '';
+            if ($question->type === 'pilihan_ganda' && $answer && $answer->selected_option) {
+                $answered = true;
+            }
         @endphp
 
         <div class="question-card bg-white border rounded-2xl p-5 mb-4 shadow-sm transition-all duration-200
@@ -63,21 +67,58 @@
                 <div class="flex-1">
                     <div class="flex items-start justify-between gap-2">
                         <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ $question->question_text }}</p>
-                        <span class="flex-shrink-0 text-xs font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg">5 poin</span>
+                        <div class="flex-shrink-0 flex items-center gap-2">
+                            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg">{{ $question->type_label }}</span>
+                            <span class="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg">{{ $question->points }} poin</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Answer Textarea --}}
+            {{-- Answer Area --}}
             <div class="ml-12">
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Jawaban Anda:</label>
-                <textarea
-                    id="answer-{{ $question->id }}"
-                    class="answer-textarea w-full border rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors {{ $answered ? 'border-green-400 bg-green-50' : 'border-gray-300' }}"
-                    rows="5"
-                    placeholder="Tuliskan jawaban Anda di sini..."
-                    data-question-id="{{ $question->id }}"
-                >{{ $answers[$question->id] ?? '' }}</textarea>
+                @if($question->type === 'pilihan_ganda' && !empty($question->options))
+                    {{-- Multiple Choice --}}
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Pilih jawaban Anda:</label>
+                    <div class="space-y-2">
+                        @foreach($question->options as $letter => $optionText)
+                        <label class="flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition hover:bg-blue-50 {{ ($answer && $answer->selected_option === $letter) ? 'border-blue-500 bg-blue-50' : 'border-gray-200' }}"
+                               id="option-{{ $question->id }}-{{ $letter }}">
+                            <input type="radio" name="option_{{ $question->id }}" value="{{ $letter }}"
+                                   {{ ($answer && $answer->selected_option === $letter) ? 'checked' : '' }}
+                                   class="mt-1 option-radio"
+                                   data-question-id="{{ $question->id }}"
+                                   onchange="selectOption({{ $question->id }}, '{{ $letter }}')">
+                            <div>
+                                <span class="font-bold text-blue-700">{{ $letter }}.</span>
+                                <span class="text-sm text-gray-700">{{ $optionText }}</span>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+
+                @elseif($question->type === 'coding')
+                    {{-- Coding --}}
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Jawaban Anda:</label>
+                    <textarea
+                        id="answer-{{ $question->id }}"
+                        class="answer-textarea w-full border rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono transition-colors {{ $answered ? 'border-green-400 bg-green-50' : 'border-gray-300' }}"
+                        rows="8"
+                        placeholder="Tuliskan kode Anda di sini..."
+                        data-question-id="{{ $question->id }}"
+                    >{{ $answer->answer_text ?? '' }}</textarea>
+
+                @else
+                    {{-- Isian / default --}}
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Jawaban Anda:</label>
+                    <textarea
+                        id="answer-{{ $question->id }}"
+                        class="answer-textarea w-full border rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors {{ $answered ? 'border-green-400 bg-green-50' : 'border-gray-300' }}"
+                        rows="5"
+                        placeholder="Tuliskan jawaban Anda di sini..."
+                        data-question-id="{{ $question->id }}"
+                    >{{ $answer->answer_text ?? '' }}</textarea>
+                @endif
 
                 <div class="flex items-center justify-between mt-2">
                     <span class="save-status text-xs text-gray-400" id="status-{{ $question->id }}">
@@ -97,13 +138,11 @@
     <div class="mt-8 bg-white border-2 border-gray-200 rounded-2xl p-6 text-center shadow-sm">
         <h2 class="font-bold text-gray-800 mb-1">Selesai Mengerjakan?</h2>
         <p class="text-sm text-gray-500 mb-4">Pastikan semua jawaban sudah tersimpan sebelum klik Selesai.</p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="{{ route('ujian.selesai') }}"
-               onclick="return confirm('Apakah Anda yakin ingin mengakhiri ujian? Tindakan ini tidak dapat dibatalkan.')"
-               class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded-xl transition text-sm shadow-md">
-                🏁 Selesai Ujian
-            </a>
-        </div>
+        <a href="{{ route('ujian.selesai', $exam->code) }}"
+           onclick="return confirm('Apakah Anda yakin ingin mengakhiri ujian? Tindakan ini tidak dapat dibatalkan.')"
+           class="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded-xl transition text-sm shadow-md">
+            🏁 Selesai Ujian
+        </a>
     </div>
 
 </div>
@@ -112,11 +151,10 @@
 @push('scripts')
 <script>
 const CSRF       = document.querySelector('meta[name="csrf-token"]').content;
-const SESSION_ID = {{ $session->id }};
+const EXAM_CODE  = '{{ $exam->code }}';
 let   elapsed    = {{ $session->elapsed_seconds }};
 let   timerStart = Date.now();
-let   savedAnswers = {};
-let   pendingQueue = {};
+const EXAM_DURATION = {{ $exam->duration_minutes * 60 }};
 
 // ─── Timer ──────────────────────────────────────────────
 function formatTime(sec) {
@@ -132,22 +170,24 @@ function updateTimer() {
     const now = Date.now();
     const delta = Math.floor((now - timerStart) / 1000);
     const current = elapsed + delta;
-    const remaining = Math.max(0, {{ \App\Models\ExamSession::EXAM_DURATION }} - current);
+    const remaining = Math.max(0, EXAM_DURATION - current);
 
-    display.textContent = formatTime(remaining);
+    if (display) {
+        display.textContent = formatTime(remaining);
 
-    if (remaining <= 300) { // 5 menit terakhir
-        display.classList.add('timer-warning', 'bg-red-600');
-        display.classList.remove('bg-blue-800');
-    } else if (remaining <= 600) { // 10 menit
-        display.classList.add('bg-yellow-600');
-        display.classList.remove('bg-blue-800');
-    }
+        if (remaining <= 300) {
+            display.classList.add('timer-warning', 'bg-red-600');
+            display.classList.remove('bg-blue-800', 'bg-yellow-600');
+        } else if (remaining <= 600) {
+            display.classList.add('bg-yellow-600');
+            display.classList.remove('bg-blue-800');
+        }
 
-    if (remaining === 0) {
-        clearInterval(timerInterval);
-        alert('⏰ Waktu ujian telah habis! Anda akan diarahkan ke halaman submit.');
-        window.location.href = '{{ route("ujian.selesai") }}';
+        if (remaining === 0) {
+            clearInterval(timerInterval);
+            alert('⏰ Waktu ujian telah habis! Anda akan diarahkan ke halaman submit.');
+            window.location.href = '{{ route("ujian.selesai", $exam->code) }}';
+        }
     }
 }
 
@@ -158,12 +198,9 @@ updateTimer();
 setInterval(() => {
     const delta = Math.floor((Date.now() - timerStart) / 1000);
     const current = elapsed + delta;
-    fetch('{{ route("ujian.sync-timer") }}', {
+    fetch(`/ujian/${EXAM_CODE}/sync-timer`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CSRF,
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({ elapsed: current }),
     });
 }, 30000);
@@ -179,39 +216,63 @@ document.querySelectorAll('.answer-textarea').forEach(textarea => {
     });
 });
 
+// ─── Select Option (PG) ──────────────────────────────────
+function selectOption(questionId, letter) {
+    // Update visual
+    document.querySelectorAll(`[id^="option-${questionId}-"]`).forEach(el => {
+        el.classList.remove('border-blue-500', 'bg-blue-50');
+        el.classList.add('border-gray-200');
+    });
+    const selected = document.getElementById(`option-${questionId}-${letter}`);
+    if (selected) {
+        selected.classList.add('border-blue-500', 'bg-blue-50');
+        selected.classList.remove('border-gray-200');
+    }
+
+    // Auto-save
+    saveAnswer(questionId, letter);
+}
+
 // ─── Save Answer ─────────────────────────────────────────
-async function saveAnswer(questionId) {
+async function saveAnswer(questionId, selectedOption = null) {
     const textarea = document.getElementById('answer-' + questionId);
-    const text = textarea.value.trim();
     const statusEl = document.getElementById('status-' + questionId);
     const card = document.getElementById('card-' + questionId);
+
+    const body = { question_id: questionId };
+
+    if (textarea) {
+        body.answer_text = textarea.value;
+    }
+    if (selectedOption) {
+        body.selected_option = selectedOption;
+    } else {
+        const checked = document.querySelector(`input[name="option_${questionId}"]:checked`);
+        if (checked) body.selected_option = checked.value;
+    }
 
     statusEl.textContent = '💾 Menyimpan...';
 
     try {
-        const res = await fetch('{{ route("ujian.jawab") }}', {
+        const res = await fetch(`/ujian/${EXAM_CODE}/jawab`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF,
-            },
-            body: JSON.stringify({
-                question_id: questionId,
-                answer_text: textarea.value,
-            }),
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify(body),
         });
 
         const data = await res.json();
         if (data.success) {
             statusEl.textContent = '✅ Tersimpan';
             statusEl.className = 'save-status text-xs text-green-600';
-            if (text !== '') {
-                textarea.classList.add('border-green-400', 'bg-green-50');
-                textarea.classList.remove('border-gray-300');
-                card.classList.add('border-green-400');
-                card.classList.remove('border-gray-200');
-                updateAnsweredCount();
+            card.classList.add('border-green-400');
+            card.classList.remove('border-gray-200');
+            if (textarea) {
+                if (textarea.value.trim() !== '') {
+                    textarea.classList.add('border-green-400', 'bg-green-50');
+                    textarea.classList.remove('border-gray-300');
+                }
             }
+            updateAnsweredCount();
         } else {
             statusEl.textContent = '❌ Gagal disimpan';
             statusEl.className = 'save-status text-xs text-red-600';
@@ -223,8 +284,19 @@ async function saveAnswer(questionId) {
 }
 
 function updateAnsweredCount() {
-    const filled = Array.from(document.querySelectorAll('.answer-textarea'))
-        .filter(t => t.value.trim() !== '').length;
+    let filled = 0;
+    // Count textareas
+    document.querySelectorAll('.answer-textarea').forEach(t => {
+        if (t.value.trim() !== '') filled++;
+    });
+    // Count PG that have a checked option but no textarea
+    document.querySelectorAll('.option-radio').forEach(radio => {
+        if (radio.checked) {
+            const qid = radio.dataset.questionId;
+            const textarea = document.getElementById('answer-' + qid);
+            if (!textarea) filled++;
+        }
+    });
     document.getElementById('answered-count').textContent = filled;
 }
 
@@ -232,7 +304,7 @@ function updateAnsweredCount() {
 window.addEventListener('beforeunload', () => {
     const delta = Math.floor((Date.now() - timerStart) / 1000);
     const current = elapsed + delta;
-    navigator.sendBeacon('{{ route("ujian.sync-timer") }}',
+    navigator.sendBeacon(`/ujian/${EXAM_CODE}/sync-timer`,
         JSON.stringify({ elapsed: current, _token: CSRF }));
 });
 </script>

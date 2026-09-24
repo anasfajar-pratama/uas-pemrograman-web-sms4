@@ -7,7 +7,7 @@
         
         <div class="bg-gradient-to-r from-red-600 to-red-700 px-8 py-6 text-white">
             <h1 class="text-2xl font-bold">🏁 Selesai Ujian</h1>
-            <p class="text-red-100 text-sm mt-1">Isi form berikut untuk mengumpulkan jawaban Anda</p>
+            <p class="text-red-100 text-sm mt-1"><?php echo e($exam->name); ?></p>
         </div>
 
         
@@ -22,10 +22,7 @@
                     <div class="text-xs text-gray-500 mt-1">Belum Dijawab</div>
                 </div>
                 <div class="bg-orange-50 rounded-xl p-4 text-center">
-                    <?php
-                        $elapsedMin = round($session->elapsed_seconds / 60, 1);
-                        $remainMin  = round(($session->remaining_seconds) / 60, 1);
-                    ?>
+                    <?php $elapsedMin = round($session->elapsed_seconds / 60, 1); ?>
                     <div class="text-2xl font-bold text-orange-700"><?php echo e($elapsedMin); ?>'</div>
                     <div class="text-xs text-orange-500 mt-1">Waktu Dipakai</div>
                 </div>
@@ -34,13 +31,13 @@
             <?php if($answeredCount < $totalQuestions): ?>
                 <div class="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-6 text-sm text-yellow-700">
                     ⚠️ Masih ada <b><?php echo e($totalQuestions - $answeredCount); ?> soal</b> yang belum dijawab.
-                    <a href="<?php echo e(route('ujian.index')); ?>" class="font-semibold underline ml-1">Kembali ke soal</a>
+                    <a href="<?php echo e(route('ujian.index', $exam->code)); ?>" class="font-semibold underline ml-1">Kembali ke soal</a>
                 </div>
             <?php endif; ?>
         </div>
 
         
-        <form method="POST" action="<?php echo e(route('ujian.selesai.submit')); ?>" class="px-8 pb-8">
+        <form method="POST" action="<?php echo e(route('ujian.selesai.submit', $exam->code)); ?>" class="px-8 pb-8">
             <?php echo csrf_field(); ?>
 
             <div class="mb-5">
@@ -62,9 +59,7 @@ unset($__errorArgs, $__bag); ?>">
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <p class="mt-1 text-xs text-red-600"><?php echo e($message); ?></p>
-                <?php unset($message);
+$message = $__bag->first($__errorArgs[0]); ?><p class="mt-1 text-xs text-red-600"><?php echo e($message); ?></p><?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
@@ -75,7 +70,7 @@ unset($__errorArgs, $__bag); ?>
                     Jelaskan mengapa Anda mengharapkan nilai tersebut <span class="text-red-500">*</span>
                 </label>
                 <textarea name="grade_reason" rows="5"
-                          placeholder="Tuliskan alasan mengapa Anda mengharapkan nilai tersebut, misalnya: materi yang dikuasai, soal yang berhasil dijawab, dll."
+                          placeholder="Tuliskan alasan mengapa Anda mengharapkan nilai tersebut..."
                           class="w-full px-4 py-2.5 border rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-400 <?php $__errorArgs = ['grade_reason'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -88,16 +83,14 @@ unset($__errorArgs, $__bag); ?>"><?php echo e(old('grade_reason')); ?></textarea
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <p class="mt-1 text-xs text-red-600"><?php echo e($message); ?></p>
-                <?php unset($message);
+$message = $__bag->first($__errorArgs[0]); ?><p class="mt-1 text-xs text-red-600"><?php echo e($message); ?></p><?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
             <div class="flex gap-3">
-                <a href="<?php echo e(route('ujian.index')); ?>"
+                <a href="<?php echo e(route('ujian.index', $exam->code)); ?>"
                    class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-4 rounded-xl transition text-sm">
                     ← Kembali
                 </a>

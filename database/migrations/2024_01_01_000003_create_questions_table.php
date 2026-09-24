@@ -10,13 +10,18 @@ return new class extends Migration
     {
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedTinyInteger('number')->unique();
+            $table->foreignId('exam_id')->constrained()->onDelete('cascade');
+            $table->unsignedTinyInteger('number');
             $table->enum('section', ['teori', 'logika', 'coding']);
+            $table->enum('type', ['pilihan_ganda', 'isian', 'coding'])->default('isian');
             $table->text('question_text');
             $table->text('answer_key');
-            $table->json('keywords')->nullable(); // untuk estimasi nilai
+            $table->json('options')->nullable();
+            $table->json('keywords')->nullable();
             $table->unsignedTinyInteger('points')->default(5);
             $table->timestamps();
+
+            $table->unique(['exam_id', 'number']);
         });
     }
 

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('question_id')->constrained()->onDelete('cascade');
             $table->text('answer_text')->nullable();
+            $table->string('selected_option')->nullable();
             $table->decimal('estimated_score', 4, 1)->default(0);
             $table->timestamps();
 

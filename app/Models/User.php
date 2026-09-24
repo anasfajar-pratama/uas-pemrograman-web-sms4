@@ -32,9 +32,14 @@ class User extends Authenticatable
         ];
     }
 
+    public function examSessions()
+    {
+        return $this->hasMany(ExamSession::class);
+    }
+
     public function examSession()
     {
-        return $this->hasOne(ExamSession::class);
+        return $this->hasOne(ExamSession::class)->latestOfMany();
     }
 
     public function answers()
