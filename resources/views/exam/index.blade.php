@@ -1,6 +1,23 @@
 @extends('layouts.app')
 @section('title', 'Soal UAS — ' . $exam->name)
 
+@push('styles')
+<style>
+.question-card, .question-card * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.answer-textarea, .option-radio {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-4xl mx-auto">
 
@@ -306,6 +323,38 @@ window.addEventListener('beforeunload', () => {
     const current = elapsed + delta;
     navigator.sendBeacon(`/ujian/${EXAM_CODE}/sync-timer`,
         JSON.stringify({ elapsed: current, _token: CSRF }));
+});
+
+// ─── Anti-copy protection ─────────────────────────────────
+document.addEventListener('contextmenu', e => {
+    if (e.target.closest('.question-card') && !e.target.closest('.answer-textarea')) {
+        e.preventDefault();
+    }
+});
+
+document.addEventListener('keydown', e => {
+    if (e.target.closest('.answer-textarea')) return;
+    if ((e.ctrlKey || e.metaKey) && ['c','x','a','p','s'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (e.key === 'PrintScreen' || e.key === 'F12') {
+        e.preventDefault();
+    }
+});
+
+document.querySelectorAll('.question-card').forEach(card => {
+    card.addEventListener('copy', e => {
+        if (!e.target.closest('.answer-textarea')) {
+            e.preventDefault();
+        }
+    });
+    card.addEventListener('cut', e => e.preventDefault());
+    card.addEventListener('selectstart', e => {
+        if (!e.target.closest('.answer-textarea')) {
+            e.preventDefault();
+        }
+    });
 });
 </script>
 @endpush

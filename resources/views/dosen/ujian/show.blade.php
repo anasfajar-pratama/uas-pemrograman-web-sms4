@@ -140,8 +140,15 @@
     <div class="mt-6 bg-white rounded-2xl shadow-sm border overflow-hidden">
         <div class="px-6 py-4 border-b bg-gray-50 flex items-center justify-between">
             <h2 class="font-bold text-gray-800">Daftar Soal ({{ $questions->count() }})</h2>
-            <a href="{{ route('dosen.ujian.soal.index', $exam->id) }}"
-               class="text-xs text-blue-600 hover:text-blue-800 font-semibold">Kelola Soal →</a>
+            <div class="flex items-center gap-3">
+                <button onclick="document.getElementById('preview-modal').classList.remove('hidden')"
+                   class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition font-semibold flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Preview Soal
+                </button>
+                <a href="{{ route('dosen.ujian.soal.index', $exam->id) }}"
+                   class="text-xs text-blue-600 hover:text-blue-800 font-semibold">Kelola Soal →</a>
+            </div>
         </div>
         <div class="divide-y divide-gray-100">
             @foreach($questions as $q)
@@ -159,6 +166,95 @@
                 Belum ada soal. <a href="{{ route('dosen.ujian.soal.create', $exam->id) }}" class="text-blue-600 font-semibold">Tambah soal</a>
             </div>
             @endif
+        </div>
+    </div>
+
+    {{-- Preview Modal --}}
+    <div id="preview-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="px-6 py-4 border-b bg-gray-50 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h2 class="font-bold text-gray-900 text-lg">Preview Soal — {{ $exam->name }}</h2>
+                    <p class="text-sm text-gray-500">{{ $questions->count() }} soal | Total {{ $questions->sum('points') }} poin</p>
+                </div>
+                <button onclick="document.getElementById('preview-modal').classList.add('hidden')"
+                   class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition text-gray-500 hover:text-gray-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="overflow-y-auto flex-1 p-6">
+                @php
+                    $sections = [
+                        'teori'  => ['label' => 'Bagian — Teori',    'color' => 'blue'],
+                        'logika' => ['label' => 'Bagian — Logika',   'color' => 'yellow'],
+                        'coding' => ['label' => 'Bagian — Coding',   'color' => 'green'],
+                    ];
+                    $currentSection = null;
+                @endphp
+
+                @forelse($questions as $q)
+                    @if($currentSection !== $q->section)
+                        @php $currentSection = $q->section; $sec = $sections[$currentSection] ?? ['label' => ucfirst($currentSection), 'color' => 'gray']; @endphp
+                        <div class="mt-6 mb-3 first:mt-0">
+                            <span class="inline-block section-{{ $currentSection }} text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full">
+                                {{ $sec['label'] }}
+                            </span>
+                        </div>
+                    @endif
+
+                    <div class="border border-gray-200 rounded-xl p-4 mb-3 hover:border-gray-300 transition">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="flex-shrink-0 w-8 h-8 num-{{ $q->section }} rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                {{ $q->number }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ $q->question_text }}</p>
+                                    <div class="flex-shrink-0 flex items-center gap-1.5">
+                                        <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">{{ $q->type_label }}</span>
+                                        <span class="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded">{{ $q->points }} poin</span>
+                                    </div>
+                                </div>
+
+                                @if($q->type === 'pilihan_ganda' && !empty($q->options))
+                                    <div class="mt-3 space-y-1.5">
+                                        @foreach($q->options as $letter => $optText)
+                                            <div class="flex items-start gap-2 text-sm {{ strtoupper($q->answer_key) === $letter ? 'bg-green-50 border border-green-200 rounded-lg px-3 py-1.5' : 'px-3 py-1.5' }}">
+                                                <span class="font-bold text-blue-700">{{ $letter }}.</span>
+                                                <span class="text-gray-700">{{ $optText }}</span>
+                                                @if(strtoupper($q->answer_key) === $letter)
+                                                    <span class="ml-auto text-xs text-green-600 font-semibold">✓ Kunci</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-1 text-xs">
+                                    <div>
+                                        <span class="text-gray-400">Kunci Jawaban:</span>
+                                        <span class="font-semibold text-gray-700 ml-1">{{ $q->answer_key }}</span>
+                                    </div>
+                                    @if(!empty($q->keywords))
+                                        <div>
+                                            <span class="text-gray-400">Keywords:</span>
+                                            <span class="text-gray-600 ml-1">{{ implode(', ', $q->keywords) }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center text-gray-400 py-8">Belum ada soal.</div>
+                @endforelse
+            </div>
+            <div class="px-6 py-3 border-t bg-gray-50 flex justify-end flex-shrink-0">
+                <button onclick="document.getElementById('preview-modal').classList.add('hidden')"
+                   class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition font-semibold">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 
